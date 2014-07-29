@@ -6,11 +6,9 @@ use DateTime;
 use Template;
 use 5.010;
 use lib 'lib';
-use regulars qw( time_to_bins );
+use regulars qw( build_bins time_to_bins );
 
 my $template           = Template->new({ INCLUDE_PATH => 'templates' });
-my $FIRST_RELEASE_TIME = 801459900;
-my $DAY_IN_SECONDS     = 24 * 60 * 60;
 my %bins = (
     day   => [],
     week  => [],
@@ -18,31 +16,10 @@ my %bins = (
 );
 my %counts;
 
-build_bins();
+build_bins(\%bins);
 process_cpan_releases();
 find_current_chains();
 find_longest_chains();
-
-sub build_bins
-{
-    my $time = time();
-    my ($week_number, $week_year);
-    my ($previous_date, $previous_ym, $previous_week);
-    my ($date, $ym, $week);
-
-    while ($time > $FIRST_RELEASE_TIME) {
-        my ($ym, $week, $date) = time_to_bins($time);
-
-        push(@{ $bins{day} },   $date)  if !defined($previous_date) || $previous_date ne $date;
-        push(@{ $bins{week} },  $week)  if !defined($previous_week) || $previous_week ne $week;
-        push(@{ $bins{month} }, $ym)    if !defined($previous_ym)   || $previous_ym ne $ym;
-
-        $previous_ym   = $ym;
-        $previous_week = $week;
-        $previous_date = $date;
-        $time -= $DAY_IN_SECONDS;
-    }
-}
 
 sub process_cpan_releases
 {

@@ -8,8 +8,11 @@ package regulars;
 
 # AUTHORITY
 
-use Sub::Exporter::Progressive -setup => { exports => [qw( final_week_number time_to_bins )] };
+use Sub::Exporter::Progressive -setup => { exports => [qw( final_week_number time_to_bins build_bins )] };
 use DateTime;
+
+my $FIRST_RELEASE_TIME = 801459900;
+my $DAY_IN_SECONDS     = 24 * 60 * 60;
 
 sub final_week_number
 {
@@ -46,5 +49,26 @@ sub time_to_bins
     return ($ym, $week, $date);
 }
 
+sub build_bins
+{
+    my $bins = shift;
+    my $time = time();
+    my ($week_number,   $week_year);
+    my ($previous_date, $previous_ym, $previous_week);
+    my ($date,          $ym, $week);
+
+    while ($time > $FIRST_RELEASE_TIME) {
+        my ($ym, $week, $date) = time_to_bins($time);
+
+        push(@{ $bins->{day} },   $date) if !defined($previous_date) || $previous_date ne $date;
+        push(@{ $bins->{week} },  $week) if !defined($previous_week) || $previous_week ne $week;
+        push(@{ $bins->{month} }, $ym)   if !defined($previous_ym)   || $previous_ym ne $ym;
+
+        $previous_ym   = $ym;
+        $previous_week = $week;
+        $previous_date = $date;
+        $time -= $DAY_IN_SECONDS;
+    }
+}
 1;
 

@@ -6,7 +6,7 @@ use DateTime;
 use Template;
 use 5.010;
 use lib 'lib';
-use regulars qw( final_week_number );
+use regulars qw( time_to_bins );
 
 my $template           = Template->new({ INCLUDE_PATH => 'templates' });
 my $FIRST_RELEASE_TIME = 801459900;
@@ -42,28 +42,6 @@ sub build_bins
         $previous_date = $date;
         $time -= $DAY_IN_SECONDS;
     }
-}
-
-sub time_to_bins
-{
-    my $time        = shift;
-    my @ts          = gmtime($time);
-    my $year        = $ts[5] + 1900;
-    my $month       = $ts[4] + 1;
-    my $day         = $ts[3];
-    my $date        = sprintf('%.4d-%.2d-%.2d', $year, $month, $day);
-    my $ym          = sprintf('%.4d-%.2d', $year, $month);
-    my $dt          = DateTime->from_epoch(epoch => $time);
-    my $week_number = $dt->strftime('%U');
-    my $week_year   = $year;
-
-    if ($week_number == 0) {
-        $week_year--;
-        $week_number = final_week_number($week_year);
-    }
-    my $week = sprintf("%.4d-W%.2d", $week_year, $week_number);
-
-    return ($ym, $week, $date);
 }
 
 sub process_cpan_releases
